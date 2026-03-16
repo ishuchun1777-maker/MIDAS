@@ -1,0 +1,15 @@
+[phases.setup]
+nixPkgs = ["nodejs_20", "openssl"]
+
+[phases.install]
+cmds = ["npm ci"]
+
+[phases.build]
+cmds = [
+  "cd packages/database && npx prisma generate",
+  "cd packages/shared && npx tsc --project tsconfig.json",
+  "cd packages/api && npx tsc --project tsconfig.json"
+]
+
+[start]
+cmd = "node packages/api/dist/index.js"
