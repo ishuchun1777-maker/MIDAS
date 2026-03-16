@@ -11,16 +11,14 @@
     "build": "turbo run build",
     "test": "turbo run test",
     "lint": "turbo run lint",
-    "db:migrate": "turbo run db:migrate",
     "db:generate": "turbo run db:generate",
+    "db:migrate": "turbo run db:migrate",
     "db:studio": "cd packages/database && npx prisma studio"
   },
   "devDependencies": {
     "turbo": "^2.0.0",
-    "typescript": "^5.4.0",
-    "@types/node": "^20.0.0",
-    "prettier": "^3.2.0",
-    "eslint": "^8.57.0"
+    "typescript": "^5.4.5",
+    "@types/node": "^20.14.0"
   },
   "engines": {
     "node": ">=20.0.0",
