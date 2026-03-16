@@ -1,0 +1,536 @@
+// MIDAS Platform — Prisma Schema
+// PostgreSQL + full MIDAS domain model
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────────────────
+// ENUMS
+// ─────────────────────────────────────────
+
+enum UserRole {
+  BUSINESS      // Tadbirkor
+  ADVERTISER    // Reklamachi
+  AGENCY        // Agentlik
+  ADMIN
+}
+
+enum Lang {
+  uz
+  ru
+  en
+}
+
+enum AdvertiserType {
+  TELEGRAM_CHANNEL
+  INSTAGRAM
+  YOUTUBE
+  TIKTOK
+  BILLBOARD
+  LED_SCREEN
+}
+
+enum SpecialistType {
+  SMM_MANAGER
+  DESIGNER
+  MEDIABUYER
+  ACTOR
+  MARKETER
+}
+
+enum VerificationStatus {
+  PENDING
+  AUTO_VERIFIED
+  APPROVED
+  REJECTED
+}
+
+enum DealStatus {
+  PENDING           // Taklif yuborildi
+  ACCEPTED          // Qabul qilindi
+  ESCROW_HELD       // To'lov escrow'da
+  CONTENT_SUBMITTED // Kontent yuborildi
+  PUBLISHED         // Nashr tasdiqlandi
+  COMPLETED         // Tugallandi, to'lov chiqarildi
+  DISPUTED          // Nizo ochildi
+  RESOLVED          // Nizo yechildi
+  CANCELLED         // Bekor qilindi
+}
+
+enum DisputeStatus {
+  OPEN
+  UNDER_REVIEW
+  RESOLVED_REFUND         // To'liq qaytarildi
+  RESOLVED_PARTIAL        // Qisman qaytarildi
+  RESOLVED_PAID_ADVERTISER // Reklamachiga to'landi
+}
+
+enum PaymentStatus {
+  PENDING
+  HELD        // Escrow'da
+  RELEASED    // Chiqarildi
+  REFUNDED    // Qaytarildi
+  FAILED
+}
+
+enum PaymentProvider {
+  PAYME
+  CLICK
+}
+
+enum NotificationType {
+  NEW_OFFER
+  OFFER_ACCEPTED
+  OFFER_REJECTED
+  PAYMENT_HELD
+  CONTENT_SUBMITTED
+  CONTENT_APPROVED
+  DEAL_COMPLETED
+  DEAL_DISPUTED
+  DISPUTE_RESOLVED
+  VERIFICATION_APPROVED
+  VERIFICATION_REJECTED
+  FRAUD_ALERT
+  DEADLINE_REMINDER
+  WITHDRAWAL_DONE
+}
+
+// ─────────────────────────────────────────
+// CORE USER
+// ─────────────────────────────────────────
+
+model User {
+  id            String    @id @default(uuid())
+  telegramId    BigInt    @unique
+  telegramUsername String?
+  phone         String?   @unique
+  fullName      String?
+  avatarUrl     String?
+  role          UserRole
+  lang          Lang      @default(uz)
+  isActive      Boolean   @default(true)
+  isBanned      Boolean   @default(false)
+  banReason     String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  businessProfile    BusinessProfile?
+  advertiserProfile  AdvertiserProfile?
+  agencyProfile      AgencyProfile?
+  notifications      Notification[]
+  reviewsGiven       Review[]          @relation("ReviewerRelation")
+  refreshTokens      RefreshToken[]
+
+  @@index([telegramId])
+  @@index([role])
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+}
+
+// ─────────────────────────────────────────
+// BUSINESS (TADBIRKOR)
+// ─────────────────────────────────────────
+
+model BusinessProfile {
+  id              String   @id @default(uuid())
+  userId          String   @unique
+  businessName    String
+  industryCode    String
+  industryName    String
+  region          String   @default("tashkent")
+  description     String?
+  websiteUrl      String?
+  monthlyBudget   BudgetRange @default(MEDIUM)
+  targetAudience  Json     @default("{}")
+  // {age_min, age_max, gender, regions[], interests[], notes}
+  isPremium       Boolean  @default(false)
+  premiumUntil    DateTime?
+  dealsCount      Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user       User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  campaigns  Campaign[]
+
+  @@index([industryCode])
+  @@index([region])
+}
+
+enum BudgetRange {
+  SMALL       // < 500K so'm
+  MEDIUM      // 500K - 2M
+  LARGE       // 2M - 10M
+  ENTERPRISE  // 10M+
+}
+
+// ─────────────────────────────────────────
+// ADVERTISER (REKLAMACHI)
+// ─────────────────────────────────────────
+
+model AdvertiserProfile {
+  id                String             @id @default(uuid())
+  userId            String             @unique
+  advertiserType    AdvertiserType
+  specialistTypes   SpecialistType[]   // Qo'shimcha rollar
+  platformHandle    String?            // @username yoki kanal ID
+  platformUrl       String?
+  followerCount     Int                @default(0)
+  engagementRate    Float              @default(0)
+  audienceData      Json               @default("{}")
+  // {age_range:{min,max}, gender_split:{m,f}, top_regions:[], interests:[], income_level}
+
+  // Tariflar
+  pricePost         Decimal?           @db.Decimal(12, 2)
+  priceStory        Decimal?           @db.Decimal(12, 2)
+  priceIntegration  Decimal?           @db.Decimal(12, 2)
+  priceOther        Decimal?           @db.Decimal(12, 2)
+
+  // Billboard/LED qo'shimcha
+  address           String?
+  dimensions        String?            // "6x3 metr"
+  dailyTraffic      Int?
+  timeSlots         Json?              // [{from: "09:00", to: "18:00", days: [1,2,3,4,5]}]
+  mediaFiles        String[]           // Foto URLlar
+
+  // Sifat ko'rsatkichlari
+  fraudScore        Float              @default(50)
+  rating            Float              @default(0)
+  reviewsCount      Int                @default(0)
+  dealsCount        Int                @default(0)
+  successRate       Float              @default(0)
+
+  // Verifikatsiya
+  verificationStatus VerificationStatus @default(PENDING)
+  verifiedAt         DateTime?
+  rejectionReason    String?
+
+  // Premium
+  isPremium         Boolean            @default(false)
+  premiumUntil      DateTime?
+  monthlyDealLimit  Int                @default(5) // Free: 5 ta/oy
+
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  deals   Deal[]
+  matches AiMatch[]
+
+  @@index([advertiserType])
+  @@index([verificationStatus])
+  @@index([fraudScore])
+  @@index([rating])
+}
+
+// ─────────────────────────────────────────
+// AGENCY (AGENTLIK)
+// ─────────────────────────────────────────
+
+model AgencyProfile {
+  id           String   @id @default(uuid())
+  userId       String   @unique
+  companyName  String
+  legalName    String?
+  inn          String?  // Soliq ID
+  licenseUrl   String?
+  description  String?
+  isPremium    Boolean  @default(false)
+  premiumUntil DateTime?
+  isVerified   Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  clients   AgencyClient[]
+}
+
+model AgencyClient {
+  id         String   @id @default(uuid())
+  agencyId   String
+  businessId String
+  addedAt    DateTime @default(now())
+
+  agency AgencyProfile @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+
+  @@unique([agencyId, businessId])
+}
+
+// ─────────────────────────────────────────
+// INDUSTRY PROFILES (AI uchun)
+// ─────────────────────────────────────────
+
+model IndustryProfile {
+  id               String   @id @default(uuid())
+  code             String   @unique  // "restaurant", "clothing", "electronics"...
+  nameUz           String
+  nameRu           String
+  nameEn           String
+  audienceTemplate Json
+  // {age_range:{min,max}, gender_split:{m,f,mixed},
+  //  top_regions:[], interests:[], income_level, seasonality}
+  relatedCodes     String[] // O'xshash sohalar
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([code])
+}
+
+// ─────────────────────────────────────────
+// CAMPAIGNS
+// ─────────────────────────────────────────
+
+model Campaign {
+  id           String         @id @default(uuid())
+  businessId   String
+  title        String
+  description  String?
+  status       CampaignStatus @default(DRAFT)
+  totalBudget  Decimal        @db.Decimal(12, 2)
+  spentBudget  Decimal        @default(0) @db.Decimal(12, 2)
+  startDate    DateTime?
+  endDate      DateTime?
+  aiBrief      Json           @default("{}")
+  // {industry_analysis, audience_profile, match_criteria, generated_at}
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  business BusinessProfile @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  deals    Deal[]
+  matches  AiMatch[]
+
+  @@index([businessId])
+  @@index([status])
+}
+
+enum CampaignStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  COMPLETED
+  CANCELLED
+}
+
+// ─────────────────────────────────────────
+// AI MATCHES
+// ─────────────────────────────────────────
+
+model AiMatch {
+  id               String   @id @default(uuid())
+  campaignId       String
+  advertiserId     String
+  matchScore       Float    // 0–100 yakuniy ball
+  audienceOverlap  Float    // 0–100
+  ratingScore      Float    // 0–100
+  priceFitScore    Float    // 0–100
+  fraudPenalty     Float    // 0–100 (past = yaxshi)
+  explanation      Json
+  // {reasoning_uz, reasoning_ru, reasoning_en,
+  //  audience_details, why_recommended}
+  isViewed         Boolean  @default(false)
+  isDismissed      Boolean  @default(false)
+  generatedAt      DateTime @default(now())
+
+  campaign   Campaign          @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  advertiser AdvertiserProfile @relation(fields: [advertiserId], references: [id], onDelete: Cascade)
+
+  @@index([campaignId, matchScore])
+  @@index([advertiserId])
+}
+
+// ─────────────────────────────────────────
+// DEALS (BITIMLAR)
+// ─────────────────────────────────────────
+
+model Deal {
+  id              String     @id @default(uuid())
+  campaignId      String
+  advertiserId    String
+  status          DealStatus @default(PENDING)
+
+  // Narx
+  price           Decimal    @db.Decimal(12, 2)
+  platformFee     Decimal    @db.Decimal(12, 2) // 7%
+  advertiserPayout Decimal   @db.Decimal(12, 2) // price - platformFee
+
+  // Kontent
+  contentUrl      String?
+  contentNote     String?
+  publishedAt     DateTime?
+
+  // Muddatlar
+  contentDeadline DateTime?  // Kontent topshirish muddati
+  acceptedAt      DateTime?
+  completedAt     DateTime?
+
+  // Escrow
+  escrowStatus    EscrowStatus @default(NONE)
+
+  // Baholash
+  performanceScore Float?
+  note            String?    // Tadbirkor izohi
+
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  campaign   Campaign          @relation(fields: [campaignId], references: [id])
+  advertiser AdvertiserProfile @relation(fields: [advertiserId], references: [id])
+  payment    Payment?
+  dispute    Dispute?
+  review     Review?
+
+  @@index([campaignId])
+  @@index([advertiserId])
+  @@index([status])
+}
+
+enum EscrowStatus {
+  NONE
+  HELD
+  RELEASED
+  REFUNDED
+}
+
+// ─────────────────────────────────────────
+// PAYMENTS
+// ─────────────────────────────────────────
+
+model Payment {
+  id           String          @id @default(uuid())
+  dealId       String          @unique
+  provider     PaymentProvider
+  status       PaymentStatus   @default(PENDING)
+  amount       Decimal         @db.Decimal(12, 2) // To'liq summa
+  fee          Decimal         @db.Decimal(12, 2) // Platform komissiya
+  txId         String?         @unique            // Provider tranzaksiya ID
+  providerData Json            @default("{}")     // Provider'dan kelgan raw data
+  heldAt       DateTime?
+  releasedAt   DateTime?
+  refundedAt   DateTime?
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+
+  deal Deal @relation(fields: [dealId], references: [id])
+
+  @@index([txId])
+  @@index([status])
+}
+
+// ─────────────────────────────────────────
+// DISPUTES (NIZOLAR)
+// ─────────────────────────────────────────
+
+model Dispute {
+  id              String        @id @default(uuid())
+  dealId          String        @unique
+  openedById      String        // Kim ochdi (user ID)
+  reason          String
+  evidenceUrls    String[]
+  status          DisputeStatus @default(OPEN)
+  adminId         String?       // Qaror bergan admin
+  adminNote       String?
+  resolution      String?
+  refundPercent   Int?          // 0–100
+  autoResolvedAt  DateTime?
+  resolvedAt      DateTime?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  deal Deal @relation(fields: [dealId], references: [id])
+
+  @@index([status])
+}
+
+// ─────────────────────────────────────────
+// REVIEWS (REYTINGLAR)
+// ─────────────────────────────────────────
+
+model Review {
+  id           String   @id @default(uuid())
+  dealId       String   @unique
+  reviewerId   String
+  targetId     String   // Kim baholanyapti (advertiser yoki business user ID)
+  score        Int      // 1–5
+  comment      String?
+  isPublic     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+
+  deal     Deal @relation(fields: [dealId], references: [id])
+  reviewer User @relation("ReviewerRelation", fields: [reviewerId], references: [id])
+
+  @@index([targetId])
+  @@index([reviewerId])
+}
+
+// ─────────────────────────────────────────
+// NOTIFICATIONS
+// ─────────────────────────────────────────
+
+model Notification {
+  id        String           @id @default(uuid())
+  userId    String
+  type      NotificationType
+  payload   Json             @default("{}")
+  // {title_uz, title_ru, title_en, body_uz, body_ru, body_en, entityId, entityType}
+  isRead    Boolean          @default(false)
+  sentToBot Boolean          @default(false)
+  readAt    DateTime?
+  createdAt DateTime         @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead])
+  @@index([createdAt])
+}
+
+// ─────────────────────────────────────────
+// WITHDRAWALS (PUL CHIQARISH)
+// ─────────────────────────────────────────
+
+model Withdrawal {
+  id           String           @id @default(uuid())
+  userId       String
+  amount       Decimal          @db.Decimal(12, 2)
+  cardNumber   String           // Oxirgi 4 raqam
+  status       WithdrawalStatus @default(PENDING)
+  processedAt  DateTime?
+  note         String?
+  createdAt    DateTime         @default(now())
+
+  @@index([userId])
+  @@index([status])
+}
+
+enum WithdrawalStatus {
+  PENDING
+  PROCESSING
+  DONE
+  FAILED
+}
+
+// ─────────────────────────────────────────
+// PLATFORM SETTINGS
+// ─────────────────────────────────────────
+
+model PlatformSetting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+  updatedBy String?
+}

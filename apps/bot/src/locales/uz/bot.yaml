@@ -1,0 +1,127 @@
+menu:
+  open_app: "Ilovani ochish"
+  new_campaign: "Yangi kampaniya"
+  active_deals: "Faol bitimlar"
+  recommendations: "Tavsiyalar"
+  wallet: "Hamyon"
+  settings: "Sozlamalar"
+  new_orders: "Yangi buyurtmalar"
+  earnings: "Daromad"
+  my_profile: "Mening profilim"
+  all_deals: "Barcha bitimlar"
+  clients: "Klientlar"
+  welcome_business: |
+    👋 Xush kelibsiz, <b>MIDAS</b>ga!
+
+    Sizning tadbirkorlik panelingiz tayyor.
+    Yangi reklama kampaniyasini boshlang yoki tavsiyalarni ko'ring.
+  welcome_advertiser: |
+    👋 Xush kelibsiz, <b>MIDAS</b>ga!
+
+    Sizning reklamachi panelingiz tayyor.
+    Yangi buyurtmalar kelganda bu yerdan xabar olasiz.
+  welcome_agency: |
+    👋 Xush kelibsiz, <b>MIDAS</b>ga!
+
+    Agentlik panelingiz tayyor.
+    Klientlaringiz kampaniyalarini boshqaring.
+
+onboarding:
+  choose_role: |
+    Siz qaysi rol bilan platformadan foydalanmoqchisiz?
+  role_business: "🏪 Tadbirkor — reklama sotib olaman"
+  role_advertiser: "📢 Reklamachi — reklama joylayman"
+  role_agency: "🏢 Agentlik — mijozlar uchun boshqaraman"
+
+  business:
+    ask_name: "Biznesingiz nomi nima?"
+    ask_industry: |
+      Biznesingiz qaysi sohada?
+
+      Ro'yxatdan tanlang yoki o'zingiz yozing:
+    ask_budget: "Oylik reklama byudjetingiz taxminan qancha?"
+    ask_region: "Biznesingiz qaysi hududda joylashgan?"
+    success: |
+      ✅ <b>Profil yaratildi!</b>
+
+      Endi AI sizning soha va byudjetingizga mos reklamachilarni izlamoqda...
+
+  advertiser:
+    ask_platform: "Siz qaysi platformada ishlaysiz?"
+    platform_telegram: "📱 Telegram kanal"
+    platform_instagram: "📸 Instagram"
+    platform_youtube: "▶️ YouTube"
+    platform_tiktok: "🎵 TikTok"
+    platform_billboard: "🪧 Billboard"
+    platform_led: "💡 LED ekran"
+    ask_handle: "Kanal/sahifa havolangizni yuboring (masalan: @sizning_kanal)"
+    ask_followers: "Taxminiy obunachilar/kuzatuvchilar soni?"
+    ask_price: "Post uchun narxingiz (so'mda)? (masalan: 1500000)"
+    verification_sent: |
+      ✅ <b>Arizangiz qabul qilindi!</b>
+
+      Profilingiz 24 soat ichida tekshiriladi.
+      Natija haqida xabar olasiz.
+
+  agency:
+    ask_company: "Kompaniya nomini kiriting:"
+    ask_license: "Litsenziya yoki hujjat (ixtiyoriy, o'tkazib yuborishingiz mumkin):"
+    verification_sent: |
+      ✅ <b>Agentlik arizasi yuborildi!</b>
+
+      48 soat ichida ko'rib chiqiladi.
+
+deal:
+  new_offer: |
+    📩 <b>Yangi taklif!</b>
+
+    🏪 <b>{business_name}</b>
+    💰 Summa: <b>{amount}</b>
+    📝 Tur: {deal_type}
+    ⏰ Muddati: {deadline}
+
+    Qabul qilasizmi?
+  accepted: |
+    ✅ <b>Taklif qabul qilindi!</b>
+
+    Reklamachi roziligi bildirdi.
+    Iltimos, to'lovni amalga oshiring.
+  payment_held: |
+    💰 <b>To'lov escrow'ga tushdi!</b>
+
+    <b>{amount}</b> platforma'da xavfsiz saqlanmoqda.
+    Kontent tayyorlab, havolani yuboring.
+    ⏰ Muddat: {deadline}
+  content_submitted: |
+    📎 <b>Kontent yuborildi!</b>
+
+    Reklamachi: {advertiser_name}
+    🔗 Havola: {content_url}
+
+    Kontentni ko'rib chiqing va tasdiqlang.
+  completed: |
+    🎉 <b>Bitim muvaffaqiyatli yakunlandi!</b>
+
+    💸 {amount} hisobingizga o'tkazildi.
+    Iltimos, reklamachini baholang:
+  deadline_reminder: |
+    ⚠️ <b>Diqqat!</b>
+
+    Kontent topshirishga atigi <b>{hours} soat</b> qoldi!
+    Vaqtida topshirmasangiz, to'lov qaytarilishi mumkin.
+
+wallet:
+  balance: |
+    💰 <b>Hamyon</b>
+
+    Mavjud balans: <b>{balance}</b>
+    Bu oy tushum: <b>{monthly}</b>
+    Karta: {card}
+  withdraw_prompt: "Qancha miqdorni chiqarmoqchisiz?"
+  withdraw_success: "✅ {amount} kartangizga yo'naltirildi."
+
+error:
+  rate_limit: "Juda ko'p so'rov. Biroz kuting."
+  not_found: "Ma'lumot topilmadi."
+  server: "Xatolik yuz berdi. Qayta urinib ko'ring."
+  unauthorized: "Avval ro'yxatdan o'ting."

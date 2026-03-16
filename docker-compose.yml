@@ -1,0 +1,108 @@
+version: '3.9'
+
+services:
+  # ─── PostgreSQL ────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: midas_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: midas_db
+      POSTGRES_USER: midas_user
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-midas_dev_password}
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U midas_user -d midas_db']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ─── Redis ─────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: midas_redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-midas_redis_dev}
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  # ─── API Backend ───────────────────────
+  api:
+    build:
+      context: .
+      dockerfile: packages/api/Dockerfile
+    container_name: midas_api
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://midas_user:${POSTGRES_PASSWORD:-midas_dev_password}@postgres:5432/midas_db
+      REDIS_URL: redis://:${REDIS_PASSWORD:-midas_redis_dev}@redis:6379
+      JWT_SECRET: ${JWT_SECRET}
+      BOT_TOKEN: ${BOT_TOKEN}
+      WEBHOOK_SECRET_TOKEN: ${WEBHOOK_SECRET_TOKEN}
+      MINIAPP_URL: ${MINIAPP_URL:-http://localhost:5173}
+      ADMIN_URL: ${ADMIN_URL:-http://localhost:5174}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      PAYME_MERCHANT_ID: ${PAYME_MERCHANT_ID}
+      PAYME_SECRET_KEY: ${PAYME_SECRET_KEY}
+      CLICK_MERCHANT_ID: ${CLICK_MERCHANT_ID}
+      CLICK_SECRET_KEY: ${CLICK_SECRET_KEY}
+      NODE_ENV: development
+      PORT: 3001
+      LOG_LEVEL: debug
+    ports:
+      - '3001:3001'
+    volumes:
+      - ./packages/api/src:/app/packages/api/src  # Hot reload uchun
+
+  # ─── Bot ───────────────────────────────
+  bot:
+    build:
+      context: .
+      dockerfile: apps/bot/Dockerfile
+    container_name: midas_bot
+    restart: unless-stopped
+    depends_on:
+      - api
+      - redis
+    environment:
+      BOT_TOKEN: ${BOT_TOKEN}
+      API_URL: http://api:3001
+      REDIS_URL: redis://:${REDIS_PASSWORD:-midas_redis_dev}@redis:6379
+      WEBHOOK_DOMAIN: ${WEBHOOK_DOMAIN}
+      WEBHOOK_SECRET_TOKEN: ${WEBHOOK_SECRET_TOKEN}
+      MINIAPP_URL: ${MINIAPP_URL}
+      NODE_ENV: development
+
+  # ─── pgAdmin (dev uchun) ───────────────
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: midas_pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@midas.uz
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin123}
+    ports:
+      - '5050:80'
+    depends_on:
+      - postgres
+    profiles:
+      - tools
+
+volumes:
+  postgres_data:
+  redis_data:
