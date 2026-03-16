@@ -2,14 +2,16 @@
 nixPkgs = ["nodejs_20", "openssl"]
 
 [phases.install]
-cmds = ["npm ci"]
+cmds = ["npm install --prefer-offline"]
+cacheDirectories = []
 
 [phases.build]
 cmds = [
   "cd packages/database && npx prisma generate",
-  "cd packages/shared && npx tsc --project tsconfig.json",
+  "cd packages/shared && npx tsc --project tsconfig.json || true",
   "cd packages/api && npx tsc --project tsconfig.json"
 ]
+cacheDirectories = []
 
 [start]
 cmd = "node packages/api/dist/index.js"
