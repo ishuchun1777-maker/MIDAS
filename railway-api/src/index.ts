@@ -11,7 +11,6 @@ import { authRoutes } from './routes/auth.routes'
 import { userRoutes } from './routes/user.routes'
 import { advertiserRoutes } from './routes/advertiser.routes'
 import { businessRoutes } from './routes/business.routes'
-import { campaignRoutes } from './routes/campaign.routes'
 import { dealRoutes } from './routes/deal.routes'
 import { matchRoutes } from './routes/match.routes'
 import { notificationRoutes } from './routes/notification.routes'
@@ -96,7 +95,7 @@ async function bootstrap() {
   app.register(userRoutes,         { prefix: '/api/v1/users' })
   app.register(advertiserRoutes,   { prefix: '/api/v1/advertisers' })
   app.register(businessRoutes,     { prefix: '/api/v1/businesses' })
-  app.register(campaignRoutes,     { prefix: '/api/v1/campaigns' })
+  
   app.register(dealRoutes,         { prefix: '/api/v1/deals' })
   app.register(matchRoutes,        { prefix: '/api/v1/matches' })
   app.register(notificationRoutes, { prefix: '/api/v1/notifications' })
