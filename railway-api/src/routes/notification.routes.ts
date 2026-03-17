@@ -4,7 +4,7 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import { prisma } from '../plugins/prisma'
 import { bot } from '../../bot-sender'
-import { formatMoney } from './shared'
+import { formatMoney } from '../shared'
 
 export async function notificationRoutes(app: FastifyInstance) {
 
@@ -196,3 +196,4 @@ function buildNotificationMessage(
 
   return { text, keyboard }
 }
+

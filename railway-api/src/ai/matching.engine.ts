@@ -7,7 +7,7 @@ import { analyzeIndustry } from './layers/layer1.industry'
 import { rankAdvertisersByOverlap, AdvertiserAudienceData } from './layers/layer2.overlap'
 import { scoreAndRankAdvertisers, AdvertiserForScoring } from './layers/layer3.scoring'
 import { calculateFraudScore } from './fraud/fraud.detector'
-import { MIDAS } from './shared'
+import { MIDAS } from '../shared'
 
 export interface MatchingInput {
   campaignId: string
@@ -244,3 +244,4 @@ export async function runWeeklyFraudScan() {
   console.log(`[FRAUD SCAN] Updated ${updates.length} advertiser fraud scores`)
   return updates.length
 }
+

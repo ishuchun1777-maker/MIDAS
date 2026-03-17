@@ -4,7 +4,7 @@
 import crypto from 'crypto'
 import jwt from 'jsonwebtoken'
 import { prisma } from '../plugins/prisma'
-import { MIDAS, JwtPayload, TelegramUser } from './shared'
+import { MIDAS, JwtPayload, TelegramUser } from '../shared'
 
 const JWT_SECRET = process.env.JWT_SECRET!
 const BOT_TOKEN = process.env.BOT_TOKEN!
@@ -174,3 +174,4 @@ export async function refreshAccessToken(refreshToken: string) {
 export async function revokeRefreshToken(refreshToken: string) {
   await prisma.refreshToken.deleteMany({ where: { token: refreshToken } })
 }
+

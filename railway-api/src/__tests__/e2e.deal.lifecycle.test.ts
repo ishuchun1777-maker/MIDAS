@@ -6,7 +6,7 @@
 
 import Fastify from 'fastify'
 import { PrismaClient } from '@prisma/client'
-import { calcPlatformFee, calcAdvertiserPayout, MIDAS } from './shared'
+import { calcPlatformFee, calcAdvertiserPayout, MIDAS } from '../shared'
 
 const prisma = new PrismaClient()
 
@@ -278,3 +278,4 @@ describe('Dispute Lifecycle E2E', () => {
     }
   })
 })
+

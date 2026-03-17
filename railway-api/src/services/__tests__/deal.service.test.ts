@@ -1,7 +1,7 @@
 // MIDAS — Deal Service Tests
 // packages/api/src/services/__tests__/deal.service.test.ts
 
-import { calcPlatformFee, calcAdvertiserPayout, calcContentDeadline, MIDAS } from './shared'
+import { calcPlatformFee, calcAdvertiserPayout, calcContentDeadline, MIDAS } from '../../shared'
 
 // ─── Moliya hisob-kitob testlari ──────────
 
@@ -117,3 +117,4 @@ describe('Payment URL generation', () => {
     expect(url).toContain('transaction_param=abc-123')
   })
 })
+

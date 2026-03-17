@@ -3,7 +3,7 @@
 
 import { prisma } from '../plugins/prisma'
 import { queueNotification } from '../jobs/queue'
-import { calcPlatformFee, calcAdvertiserPayout, calcContentDeadline, MIDAS } from './shared'
+import { calcPlatformFee, calcAdvertiserPayout, calcContentDeadline, MIDAS } from '../shared'
 
 // ─── Taklif yuborish ──────────────────────
 export async function createDeal(input: {
@@ -403,3 +403,4 @@ export class DealError extends Error {
     this.name = 'DealError'
   }
 }
+

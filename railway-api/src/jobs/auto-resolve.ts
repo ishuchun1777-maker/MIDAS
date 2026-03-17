@@ -3,7 +3,7 @@
 
 import { prisma } from '../plugins/prisma'
 import { queueNotification } from './queue'
-import { MIDAS } from './shared'
+import { MIDAS } from '../shared'
 
 /**
  * Nizo avtomatik yopish:
@@ -117,3 +117,4 @@ export async function checkPremiumExpiry() {
 
   console.log(`[PREMIUM] Expired: advertisers=${expiredAdvertisers.length}, businesses=${expiredBusinesses.length}`)
 }
+

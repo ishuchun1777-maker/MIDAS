@@ -6,7 +6,7 @@ import { redis } from '../plugins/redis'
 import { prisma } from '../plugins/prisma'
 import { runMatchingEngine } from '../ai/matching.engine'
 import { runWeeklyFraudScan } from '../ai/matching.engine'
-import { MIDAS, hoursUntilDeadline } from './shared'
+import { MIDAS, hoursUntilDeadline } from '../shared'
 
 const connection = { connection: redis }
 
@@ -181,3 +181,4 @@ export async function queueAiMatch(campaignId: string) {
     backoff: { type: 'fixed', delay: 10000 },
   })
 }
+

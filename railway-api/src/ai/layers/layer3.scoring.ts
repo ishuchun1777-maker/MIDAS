@@ -3,7 +3,7 @@
 
 import { OverlapResult } from './layer2.overlap'
 import { IndustryAnalysisOutput } from './layer1.industry'
-import { calcPlatformFee } from './shared'
+import { calcPlatformFee } from '../../shared'
 
 // Og'irliklar (skill fayldan: 40/25/20/15)
 const SCORE_WEIGHTS = {
@@ -225,3 +225,4 @@ export function scoreAndRankAdvertisers(
     .sort((a, b) => b!.finalScore - a!.finalScore)
     .slice(0, topN) as ScoredAdvertiser[]
 }
+
